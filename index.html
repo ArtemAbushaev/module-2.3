@@ -20,7 +20,7 @@
       --text:      #2c2c2c;
       --muted:     #888;
       --border:    #e8ddd0;
-      --hit:       #e74c3c;
+      --vegan:     #27ae60;
       --radius:    14px;
       --shadow:    0 4px 18px rgba(0,0,0,0.08);
     }
@@ -197,8 +197,8 @@
       flex: 1;
     }
 
-    .badge-hit {
-      background: var(--hit);
+    .badge-vegan {
+      background: var(--vegan);
       color: #fff;
       font-size: 0.68rem;
       font-weight: 700;
@@ -243,6 +243,26 @@
       align-self: flex-start;
     }
 
+    .vegan-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+      align-self: flex-start;
+    }
+    .vegan-toggle input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--vegan);
+      cursor: pointer;
+    }
+    .vegan-toggle-label {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--vegan);
+    }
+
     .empty-state {
       grid-column: 1 / -1;
       text-align: center;
@@ -270,6 +290,10 @@
     <input type="text" id="searchInput" placeholder="Поиск блюда..." oninput="applyFilters()" />
   </div>
   <div class="categories" id="categoryButtons"></div>
+  <label class="vegan-toggle">
+    <input type="checkbox" id="veganOnly" onchange="applyFilters()" />
+    <span class="vegan-toggle-label">🌿 Только веган</span>
+  </label>
 </div>
 
 <div class="results-info" id="resultsInfo"></div>
@@ -278,49 +302,41 @@
 
 <script>
   const dishes = [
-    { id: 1, name: "Хачапури по-аджарски", category: "Выпечка", price: 670, weight: "380 гр", isHit: true, emoji: "🥚", desc: "Лодочка из теста с расплавленным сыром и яйцом. Символ Аджарии!" },
-    { id: 2, name: "Хачапури по-мегрельски", category: "Выпечка", price: 650, weight: "500 гр", isHit: false, emoji: "🧀", desc: "Сыр снаружи и внутри — настоящее сырное удовольствие" },
-    { id: 3, name: "Хачапури с томатами", category: "Выпечка", price: 690, weight: "430 гр", isHit: false, emoji: "🍅", desc: "С томатами, базиликом и соусом Песто" },
-    { id: 4, name: "Метр хачапури", category: "Выпечка", price: 3490, weight: "2000 гр", isHit: false, emoji: "📏", desc: "Лучший борт по эту сторону Казбеги!" },
-    { id: 5, name: "Кубдари с говядиной", category: "Выпечка", price: 690, weight: "450 гр", isHit: false, emoji: "🥩", desc: "Традиционный сванский пирог с сочной начинкой из говядины" },
-    { id: 6, name: "Хлеб Шоти", category: "Выпечка", price: 85, weight: "280 гр", isHit: false, emoji: "🍞", desc: "Традиционный грузинский хлеб из тандыра" },
-    { id: 7, name: "Хинкали со свининой и говядиной", category: "Хинкали", price: 125, weight: "1 шт", isHit: false, emoji: "🥟", desc: "Свинина, говядина и кинза — классический выбор" },
-    { id: 8, name: "Хинкали с бараниной", category: "Хинкали", price: 145, weight: "1 шт", isHit: false, emoji: "🥟", desc: "Ароматная баранина с кинзой" },
-    { id: 9, name: "Хинкали курица, грибы и сыр", category: "Хинкали", price: 125, weight: "1 шт", isHit: false, emoji: "🥟", desc: "Нежная начинка из курицы с грибами и сыром" },
-    { id: 10, name: "Царь-хинкали", category: "Хинкали", price: 490, weight: "590 гр", isHit: true, emoji: "👑", desc: "Легендарные огромные хинкали — свинина+говядина, говядина+тархун или курица+грибы+сыр на выбор" },
-    { id: 11, name: "Хинкали Том Ям", category: "Хинкали", price: 225, weight: "1 шт", isHit: false, emoji: "🌶️", desc: "Азиатский фьюжн — остро и ароматно" },
-    { id: 12, name: "Хинкали с лососем и шпинатом", category: "Хинкали", price: 225, weight: "1 шт", isHit: false, emoji: "🐟", desc: "Сочный лосось со шпинатом в тонком тесте" },
-    { id: 13, name: "Жареный Сулугуни", category: "Закуски", price: 440, weight: "120/40 гр", isHit: true, emoji: "🧀", desc: "Золотистая корочка снаружи, тянущийся сыр внутри — с клюквенным ткемали" },
-    { id: 14, name: "Бадриджани с грецким орехом", category: "Закуски", price: 495, weight: "160 гр", isHit: true, emoji: "🍆", desc: "Рулетики из баклажана с ореховой начинкой в соусе Ромеско" },
-    { id: 15, name: "Рулетики из перца", category: "Закуски", price: 495, weight: "160 гр", isHit: true, emoji: "🫑", desc: "С творожно-ореховой начинкой. Возьми ассорти!" },
-    { id: 16, name: "Ассорти грузинских закусок", category: "Закуски", price: 590, weight: "300 гр", isHit: false, emoji: "🍽️", desc: "Лобио, баклажанная икра, пхали и сациви — лучшее сразу" },
-    { id: 17, name: "Ассорти горячих закусок", category: "Закуски", price: 1790, weight: "1000 гр", isHit: false, emoji: "🔥", desc: "Рёбра BBQ, колбаски на гриле, луковые кольца, фри, гренки, капуста и три соуса" },
-    { id: 18, name: "Мини-чебуреки с креветками", category: "Закуски", price: 450, weight: "160/40 гр", isHit: false, emoji: "🦐", desc: "С соусом кокос-чили — неожиданное сочетание!" },
-    { id: 19, name: "Цезаридзе с цыплёнком", category: "Салаты", price: 590, weight: "290 гр", isHit: false, emoji: "🥗", desc: "Грузинский взгляд на классический Цезарь" },
-    { id: 20, name: "Цезаридзе с тигриными креветками", category: "Салаты", price: 830, weight: "280 гр", isHit: false, emoji: "🦐", desc: "С нежным сырным кремом и томатами в соусе чили" },
-    { id: 21, name: "Салат с карамелизированными баклажанами", category: "Салаты", price: 570, weight: "230 гр", isHit: true, emoji: "🍆", desc: "Оригинальный фирменный салат" },
-    { id: 22, name: "Большой овощной салат", category: "Салаты", price: 470, weight: "320 гр", isHit: false, emoji: "🥗", desc: "Со сванской солью и кахетинским маслом" },
-    { id: 23, name: "Харчо", category: "Супы", price: 450, weight: "300 гр", isHit: false, emoji: "🍲", desc: "Пряный говяжий суп с рисом и грецким орехом" },
-    { id: 24, name: "Хашлама", category: "Супы", price: 650, weight: "350 гр", isHit: false, emoji: "🥘", desc: "Горшочек с барашком и овощами под шапкой из теста" },
-    { id: 25, name: "Дюшбара", category: "Супы", price: 350, weight: "370 гр", isHit: false, emoji: "🍜", desc: "Мини-хинкали с говядиной в курином бульоне" },
-    { id: 26, name: "Тыквенный крем-суп", category: "Супы", price: 370, weight: "300 гр", isHit: false, emoji: "🎃", desc: "Нежный и согревающий" },
-    { id: 27, name: "Борщ", category: "Супы", price: 450, weight: "300/40/50/60 гр", isHit: false, emoji: "🍲", desc: "Три согревающие легенды на одной странице" },
-    { id: 28, name: "Чакапули", category: "Горячее", price: 880, weight: "350 гр", isHit: true, emoji: "🍖", desc: "Томлёная в вине говядина с тархуном и сливой" },
-    { id: 29, name: "Чкмерули", category: "Горячее", price: 650, weight: "300 гр", isHit: false, emoji: "🍗", desc: "Цыплёнок в сливках с картофельным пюре" },
-    { id: 30, name: "Чахохбили", category: "Горячее", price: 570, weight: "300 гр", isHit: true, emoji: "🍗", desc: "Цыплёнок в томатном соусе — даже детям подходит!" },
-    { id: 31, name: "Оджахури со свининой", category: "Горячее", price: 670, weight: "300 гр", isHit: false, emoji: "🥩", desc: "Жареная свинина с картофелем и овощами" },
-    { id: 32, name: "Кобулети", category: "Горячее", price: 795, weight: "230 гр", isHit: true, emoji: "🍄", desc: "Запечённые с сыром грибы на картофельном пюре" },
-    { id: 33, name: "Котлета по-тбилисски", category: "Горячее", price: 490, weight: "260 гр", isHit: false, emoji: "🥩", desc: "С соусом из кукурузы" },
-    { id: 34, name: "Шашлык из курицы", category: "Гриль", price: 490, weight: "170/80/40 гр", isHit: false, emoji: "🍢", desc: "Сочный шашлык на углях с маринадом" },
-    { id: 35, name: "Шашлык из свинины", category: "Гриль", price: 630, weight: "170/80/40 гр", isHit: false, emoji: "🍢", desc: "Классика мангала с домашним маринадом" },
-    { id: 36, name: "Шашлык из барашка", category: "Гриль", price: 990, weight: "160/80/40 гр", isHit: false, emoji: "🍢", desc: "Нежная баранина с дымком" },
-    { id: 37, name: "Гриль-сет на компанию", category: "Гриль", price: 3790, weight: "1350/120 гр", isHit: false, emoji: "🎉", desc: "Шашлык из свинины, курицы, люля из баранины и говядины, шампиньоны, картофель и три соуса" },
-    { id: 38, name: "Медовик", category: "Десерты", price: 390, weight: "170 гр", isHit: true, emoji: "🍰", desc: "С рикоттой из собственной сыроварни" },
-    { id: 39, name: "Ягодный тарт", category: "Десерты", price: 490, weight: "150 гр", isHit: true, emoji: "🍓", desc: "Вкуснейший тарт с ягодами" },
-    { id: 40, name: "Орешки со сгущёнкой", category: "Десерты", price: 350, weight: "185 гр", isHit: true, emoji: "🥜", desc: "Сладости твоего детства! Зумер, попробуй что ели твои предки" },
-    { id: 41, name: "Пончики по-тбилисски", category: "Десерты", price: 390, weight: "170 гр", isHit: false, emoji: "🍩", desc: "Нежные тбилисские пончики" },
-    { id: 42, name: "Брауни Эрл Грей", category: "Десерты", price: 440, weight: "125 гр", isHit: false, emoji: "🍫", desc: "Без глютена! С ароматом чая Эрл Грей" },
-    { id: 43, name: "Ореховый торт", category: "Десерты", price: 440, weight: "180 гр", isHit: true, emoji: "🎂", desc: "Все десерты мы делаем сами!" }
+    { id: 1, name: "Хачапури по-аджарски", category: "Выпечка", price: 670, weight: "380 гр", isVegan: false, emoji: "🥚", desc: "Лодочка из теста с расплавленным сыром и яйцом. Символ Аджарии!" },
+    { id: 2, name: "Хачапури по-мегрельски", category: "Выпечка", price: 650, weight: "500 гр", isVegan: false, emoji: "🧀", desc: "Сыр снаружи и внутри — настоящее сырное удовольствие" },
+    { id: 3, name: "Хачапури с томатами", category: "Выпечка", price: 690, weight: "430 гр", isVegan: false, emoji: "🍅", desc: "С томатами, базиликом и соусом Песто" },
+    { id: 4, name: "Хлеб Шоти", category: "Выпечка", price: 85, weight: "280 гр", isVegan: true, emoji: "🍞", desc: "Традиционный грузинский хлеб из тандыра" },
+    { id: 5, name: "Хинкали со свининой и говядиной", category: "Хинкали", price: 125, weight: "1 шт", isVegan: false, emoji: "🥟", desc: "Свинина, говядина и кинза — классический выбор" },
+    { id: 6, name: "Хинкали с бараниной", category: "Хинкали", price: 145, weight: "1 шт", isVegan: false, emoji: "🥟", desc: "Ароматная баранина с кинзой" },
+    { id: 7, name: "Хинкали картофель и лук", category: "Хинкали", price: 125, weight: "1 шт", isVegan: true, emoji: "🥟", desc: "Простая и вкусная начинка из картофеля с луком" },
+    { id: 8, name: "Царь-хинкали", category: "Хинкали", price: 490, weight: "590 гр", isVegan: false, emoji: "👑", desc: "Легендарные огромные хинкали — свинина+говядина, говядина+тархун или курица+грибы+сыр на выбор" },
+    { id: 9, name: "Жареный Сулугуни", category: "Закуски", price: 440, weight: "120/40 гр", isVegan: false, emoji: "🧀", desc: "Золотистая корочка снаружи, тянущийся сыр внутри — с клюквенным ткемали" },
+    { id: 10, name: "Бадриджани с грецким орехом", category: "Закуски", price: 495, weight: "160 гр", isVegan: true, emoji: "🍆", desc: "Рулетики из баклажана с ореховой начинкой в соусе Ромеско" },
+    { id: 11, name: "Рулетики из перца", category: "Закуски", price: 495, weight: "160 гр", isVegan: false, emoji: "🫑", desc: "С творожно-ореховой начинкой" },
+    { id: 12, name: "Ассорти грузинских закусок", category: "Закуски", price: 590, weight: "300 гр", isVegan: false, emoji: "🍽️", desc: "Лобио, баклажанная икра, пхали и сациви — лучшее сразу" },
+    { id: 13, name: "Свежие овощи", category: "Закуски", price: 490, weight: "290 гр", isVegan: true, emoji: "🥦", desc: "Сезонные свежие овощи" },
+    { id: 14, name: "Грузинские разносолы", category: "Закуски", price: 550, weight: "300 гр", isVegan: true, emoji: "🥒", desc: "Фирменные маринованные и квашеные овощи по грузинским рецептам" },
+    { id: 15, name: "Цезаридзе с цыплёнком", category: "Салаты", price: 590, weight: "290 гр", isVegan: false, emoji: "🥗", desc: "Грузинский взгляд на классический Цезарь" },
+    { id: 16, name: "Салат с карамелизированными баклажанами", category: "Салаты", price: 570, weight: "230 гр", isVegan: true, emoji: "🍆", desc: "Оригинальный фирменный салат" },
+    { id: 17, name: "Большой овощной салат", category: "Салаты", price: 470, weight: "320 гр", isVegan: true, emoji: "🥗", desc: "Со сванской солью и кахетинским маслом" },
+    { id: 18, name: "Харчо", category: "Супы", price: 450, weight: "300 гр", isVegan: false, emoji: "🍲", desc: "Пряный говяжий суп с рисом и грецким орехом" },
+    { id: 19, name: "Тыквенный крем-суп", category: "Супы", price: 370, weight: "300 гр", isVegan: true, emoji: "🎃", desc: "Нежный и согревающий" },
+    { id: 20, name: "Дюшбара", category: "Супы", price: 350, weight: "370 гр", isVegan: false, emoji: "🍜", desc: "Мини-хинкали с говядиной в курином бульоне" },
+    { id: 21, name: "Чакапули", category: "Горячее", price: 880, weight: "350 гр", isVegan: false, emoji: "🍖", desc: "Томлёная в вине говядина с тархуном и сливой" },
+    { id: 22, name: "Чкмерули", category: "Горячее", price: 650, weight: "300 гр", isVegan: false, emoji: "🍗", desc: "Цыплёнок в сливках с картофельным пюре" },
+    { id: 23, name: "Чахохбили", category: "Горячее", price: 570, weight: "300 гр", isVegan: false, emoji: "🍗", desc: "Цыплёнок в томатном соусе — даже детям подходит!" },
+    { id: 24, name: "Оджахури со свининой", category: "Горячее", price: 670, weight: "300 гр", isVegan: false, emoji: "🥩", desc: "Жареная свинина с картофелем и овощами" },
+    { id: 25, name: "Кобулети", category: "Горячее", price: 795, weight: "230 гр", isVegan: false, emoji: "🍄", desc: "Запечённые с сыром грибы на картофельном пюре" },
+    { id: 26, name: "Шашлык из курицы", category: "Гриль", price: 490, weight: "170/80/40 гр", isVegan: false, emoji: "🍢", desc: "Сочный шашлык на углях с маринадом" },
+    { id: 27, name: "Шашлык из свинины", category: "Гриль", price: 630, weight: "170/80/40 гр", isVegan: false, emoji: "🍢", desc: "Классика мангала с домашним маринадом" },
+    { id: 28, name: "Шашлык из барашка", category: "Гриль", price: 990, weight: "160/80/40 гр", isVegan: false, emoji: "🍢", desc: "Нежная баранина с дымком" },
+    { id: 29, name: "Шампиньоны на гриле", category: "Гриль", price: 350, weight: "170 гр", isVegan: true, emoji: "🍄", desc: "Ароматные грибы, приготовленные на живом огне" },
+    { id: 30, name: "Овощи на гриле", category: "Гриль", price: 350, weight: "190 гр", isVegan: true, emoji: "🌽", desc: "Сезонные овощи с дымком" },
+    { id: 31, name: "Медовик", category: "Десерты", price: 390, weight: "170 гр", isVegan: false, emoji: "🍰", desc: "С рикоттой из собственной сыроварни" },
+    { id: 32, name: "Ягодный тарт", category: "Десерты", price: 490, weight: "150 гр", isVegan: false, emoji: "🍓", desc: "Вкуснейший тарт с ягодами" },
+    { id: 33, name: "Брауни Эрл Грей", category: "Десерты", price: 440, weight: "125 гр", isVegan: true, emoji: "🍫", desc: "Без глютена! С ароматом чая Эрл Грей" },
+    { id: 34, name: "Пончики по-тбилисски", category: "Десерты", price: 390, weight: "170 гр", isVegan: false, emoji: "🍩", desc: "Нежные тбилисские пончики" },
+    { id: 35, name: "Ореховый торт", category: "Десерты", price: 440, weight: "180 гр", isVegan: false, emoji: "🎂", desc: "Все десерты мы делаем сами!" }
   ];
 
   let activeCategory = "Все";
@@ -351,12 +367,16 @@
 
   function applyFilters() {
     searchQuery = document.getElementById("searchInput").value.toLowerCase();
+    const veganOnly = document.getElementById("veganOnly").checked;
+
     const filtered = dishes.filter(dish => {
       const matchCat = activeCategory === "Все" || dish.category === activeCategory;
       const matchSearch = dish.name.toLowerCase().includes(searchQuery) ||
                           dish.desc.toLowerCase().includes(searchQuery);
-      return matchCat && matchSearch;
+      const matchVegan = !veganOnly || dish.isVegan;
+      return matchCat && matchSearch && matchVegan;
     });
+
     renderCards(filtered);
   }
 
@@ -385,7 +405,7 @@
           <span class="card-cat">${dish.category}</span>
           <div class="card-title-row">
             <span class="card-name">${dish.name}</span>
-            ${dish.isHit ? '<span class="badge-hit">ХИТ</span>' : ''}
+            ${dish.isVegan ? '<span class="badge-vegan">🌿 Веган</span>' : ''}
           </div>
           <p class="card-desc">${dish.desc}</p>
           <div class="card-footer">
