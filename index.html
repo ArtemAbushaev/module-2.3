@@ -130,9 +130,6 @@
       color: var(--muted);
     }
 
-    /* ============================================================
-       Сетка карточек блюд
-       ============================================================ */
     .menu-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -339,54 +336,88 @@
     { id: 35, name: "Ореховый торт", category: "Десерты", price: 440, weight: "180 гр", isVegan: false, emoji: "🎂", desc: "Все десерты мы делаем сами!" }
   ];
 
+  // Какая категория сейчас выбрана ("Все" = показываем всё)
   let activeCategory = "Все";
+
+  // Что введено в строку поиска (пустая строка = поиск не задан)
   let searchQuery = "";
 
+  // Собираем список уникальных категорий: ["Все", "Выпечка", "Хинкали", ...]
   function getCategories() {
-    const unique = [...new Set(dishes.map(d => d.category))];
-    return ["Все", ...unique];
+    const allCategories = dishes.map(function(dish) {
+      return dish.category;
+    });
+    const uniqueSet = new Set(allCategories);
+    const uniqueArray = Array.from(uniqueSet);
+    return ["Все"].concat(uniqueArray);
   }
 
+  // Рисуем кнопки категорий в блоке #categoryButtons
   function renderCategories() {
     const container = document.getElementById("categoryButtons");
     const categories = getCategories();
     container.innerHTML = "";
 
-    categories.forEach(cat => {
+    for (let i = 0; i < categories.length; i++) {
+      const cat = categories[i];
       const btn = document.createElement("button");
-      btn.className = "cat-btn" + (cat === activeCategory ? " active" : "");
+      btn.className = cat === activeCategory ? "cat-btn active" : "cat-btn";
       btn.textContent = cat;
-      btn.addEventListener("click", () => {
+
+      btn.addEventListener("click", function() {
         activeCategory = cat;
         renderCategories();
         applyFilters();
       });
+
       container.appendChild(btn);
-    });
+    }
   }
 
+  // Фильтруем блюда по категории, поиску и чекбоксу «Только веган»
   function applyFilters() {
     searchQuery = document.getElementById("searchInput").value.toLowerCase();
     const veganOnly = document.getElementById("veganOnly").checked;
 
-    const filtered = dishes.filter(dish => {
-      const matchCat = activeCategory === "Все" || dish.category === activeCategory;
-      const matchSearch = dish.name.toLowerCase().includes(searchQuery) ||
-                          dish.desc.toLowerCase().includes(searchQuery);
-      const matchVegan = !veganOnly || dish.isVegan;
-      return matchCat && matchSearch && matchVegan;
-    });
+    const filteredDishes = [];
 
-    renderCards(filtered);
+    for (let i = 0; i < dishes.length; i++) {
+      const dish = dishes[i];
+
+      let categoryMatches;
+      if (activeCategory === "Все") {
+        categoryMatches = true;
+      } else {
+        categoryMatches = (dish.category === activeCategory);
+      }
+
+      const nameHasQuery = dish.name.toLowerCase().includes(searchQuery);
+      const descHasQuery = dish.desc.toLowerCase().includes(searchQuery);
+      const searchMatches = nameHasQuery || descHasQuery;
+
+      let veganMatches;
+      if (veganOnly === false) {
+        veganMatches = true;
+      } else {
+        veganMatches = dish.isVegan;
+      }
+
+      if (categoryMatches && searchMatches && veganMatches) {
+        filteredDishes.push(dish);
+      }
+    }
+
+    renderCards(filteredDishes);
   }
 
-  function renderCards(list) {
+  // Рисуем карточки блюд в сетке #menuGrid
+  function renderCards(dishList) {
     const grid = document.getElementById("menuGrid");
-    const info = document.getElementById("resultsInfo");
-    info.textContent = `Показано блюд: ${list.length}`;
+    const counter = document.getElementById("resultsInfo");
+    counter.textContent = `Показано блюд: ${dishList.length}`;
     grid.innerHTML = "";
 
-    if (list.length === 0) {
+    if (dishList.length === 0) {
       grid.innerHTML = `
         <div class="empty-state">
           <div class="emoji">🍽️</div>
@@ -396,16 +427,25 @@
       return;
     }
 
-    list.forEach(dish => {
+    for (let i = 0; i < dishList.length; i++) {
+      const dish = dishList[i];
       const card = document.createElement("div");
       card.className = "card";
+
+      let veganBadge;
+      if (dish.isVegan) {
+        veganBadge = '<span class="badge-vegan">🌿 Веган</span>';
+      } else {
+        veganBadge = '';
+      }
+
       card.innerHTML = `
         <div class="card-img">${dish.emoji}</div>
         <div class="card-body">
           <span class="card-cat">${dish.category}</span>
           <div class="card-title-row">
             <span class="card-name">${dish.name}</span>
-            ${dish.isVegan ? '<span class="badge-vegan">🌿 Веган</span>' : ''}
+            ${veganBadge}
           </div>
           <p class="card-desc">${dish.desc}</p>
           <div class="card-footer">
@@ -414,8 +454,9 @@
           </div>
         </div>
       `;
+
       grid.appendChild(card);
-    });
+    }
   }
 
   renderCategories();
